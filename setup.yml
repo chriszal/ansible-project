@@ -102,8 +102,8 @@
     # Update SSH authorized keys to allow the deploy user to run the deploy script
     # over SSH for each service (called deploy-<service>.sh).
     # See ./update-authorized-keys.sh
-    - name: Allow deploy user to deploy things
-      script: "./update-authorized-keys.sh {{ apps|join(' ') }}"
+    # - name: Allow deploy user to deploy things
+    #   script: "./update-authorized-keys.sh {{ apps|join(' ') }}"
 
     # - name: Copy general deploy script
     #   copy:
