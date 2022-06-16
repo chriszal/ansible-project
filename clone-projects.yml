@@ -4,10 +4,11 @@
   become_user: deploy
   tasks:
     - name: Clone app repos
-      ansible.builtin.expect:
+      expect:
         command: git -C /home/deploy clone git@{{ item }}.github.com:{{ github_account }}/{{ item }}.git
         responses:
-          'First Question in the prompt' : 'yes'
+          'First Question in the prompt' : 'y'
+          'Second Question in the prompt' : 'y'
       args:
         creates: /home/deploy/{{ item }}/
       loop: "{{ apps }}"
