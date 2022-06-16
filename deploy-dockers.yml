@@ -3,6 +3,6 @@
   become: yes
   become_user: deploy
   tasks:
-  - name: "Deploy apps"
+  - name: Deploy apps
     command: "/home/deploy/deploy-{{ item }}.sh"
     loop: "{{ apps }}"
