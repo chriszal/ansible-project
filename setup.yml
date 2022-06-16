@@ -60,7 +60,7 @@
       command: sudo chmod 666 /var/run/docker.sock
 
     - name: Create Docker network
-      command: "docker network create my_services"
+      command: "docker network create my_docker_services"
       # Command errors out when the network already exists - ignore
       ignore_errors: yes
 
