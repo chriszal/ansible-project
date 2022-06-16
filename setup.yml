@@ -55,6 +55,9 @@
       command: ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
       args:
         creates: /usr/bin/docker-compose
+    
+    - name: Chmod for docker.sock
+      command: sudo chmod 666 /var/run/docker.sock
 
     - name: Create Docker network
       command: "docker network create my_services"
