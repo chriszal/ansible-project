@@ -2,6 +2,11 @@
 
 
 cd /home/deploy/{{item}}
+if [ {{item}}="referenceLetterApp" ]
+then
+    git checkout dockerize
+fi
+
 git pull
 
 docker-compose down
