@@ -4,5 +4,6 @@ git pull
 
 docker-compose down
 
+docker-compose up --build
 # Pass current commit hash as the image tag
-COMMIT=`git rev-parse HEAD` docker-compose -f docker-compose.yml -f docker-compose-prod.yml up -d
+#COMMIT=`git rev-parse HEAD` docker-compose -f docker-compose.yml -f docker-compose-prod.yml up -d
