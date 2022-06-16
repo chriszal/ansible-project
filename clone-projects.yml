@@ -5,7 +5,7 @@
   tasks:
     - name: Clone app repos
       
-      command: yes | git -C /home/deploy clone git@{{ item }}.github.com:{{ github_account }}/{{ item }}.git
+      command: git -C /home/deploy clone git@{{ item }}.github.com:{{ github_account }}/{{ item }}.git | yes
         
       args:
         creates: /home/deploy/{{ item }}/
