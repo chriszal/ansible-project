@@ -141,10 +141,3 @@
         src: ./known_hosts
         dest: /home/deploy/.ssh/known_hosts
         owner: deploy
-
-    - name: "Login to DockerHub"
-      become: yes
-      become_user: deploy
-      command: "docker login -u {{ docker_username }} --password-stdin"
-      args:
-        stdin: "{{ docker_password }}"
