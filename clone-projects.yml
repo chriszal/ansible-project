@@ -7,8 +7,8 @@
       expect:
         command: git -C /home/deploy clone git@{{ item }}.github.com:{{ github_account }}/{{ item }}.git
         responses:
-          'First Question in the prompt' : 'y'
-          'Second Question in the prompt' : 'y'
+          'First Question in the prompt' : 'yes'
+          'Second Question in the prompt' : 'yes'
       args:
         creates: /home/deploy/{{ item }}/
       loop: "{{ apps }}"
