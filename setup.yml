@@ -59,6 +59,9 @@
     - name: Chmod for docker.sock
       command: sudo chmod 666 /var/run/docker.sock
 
+    - name: Chmod for docker-compose
+      command: sudo chmod +x /usr/local/bin/docker-compose
+
     - name: Create Docker network
       command: "docker network create referral-network"
       # Command errors out when the network already exists - ignore
