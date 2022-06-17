@@ -24,12 +24,25 @@
       loop: "{{ apps }}"
 
     - name: Build the containers
-      command: "docker-compose up --build"
+      command: "docker-compose build"
       args:
         chdir: "/home/deploy/{{item}}"
       loop: "{{ apps }}"
+    
+    - name: install module docker
+      command: "pip install docker"
+
+    - name: install module docker-compose
+      command: "pip install docker-compose"
+
+    - name: deploy Docker Compose stack
+      docker_compose:
+        project_src: /home/deploy/{{item}}
+        files:
+        - docker-compose.yml
+      loop: "{{ apps }}"
 
     - name: Populate database
-      command: "docker exec -i referenceletterapp-mysqldb-1 /bin/sh -c 'mysql -u root -proot </docker-entrypoint-initdb.d/data.sql'"
+      command: "docker exec -i referenceletterapp_mysqldb_1 /bin/sh -c 'mysql -u root -proot </docker-entrypoint-initdb.d/data.sql'"
       args:
-        chdir: "/home/deploy/{{item[0]}}"
+        chdir: "/home/deploy/{{apps[0]}}"
