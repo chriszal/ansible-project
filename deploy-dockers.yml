@@ -3,6 +3,33 @@
   become: yes
   become_user: deploy
   tasks:
-  - name: Deploy apps
-    command: "/home/deploy/deploy-{{ item }}.sh"
-    loop: "{{ apps }}"
+  # - name: Deploy apps
+  #   command: "/home/deploy/deploy-{{ item }}.sh"
+  #   loop: "{{ apps }}"
+    - name: Change branch
+      command: "git checkout dockerize"
+      args:
+        chdir: "/home/deploy/{{apps[0]}}"
+
+    - name: Pull latest updates
+      command: "git pull"
+      args:
+        chdir: "/home/deploy/{{item}}"
+      loop: "{{ apps }}"
+
+    - name: down previous containers
+      command: "docker-compose down"
+      args:
+        chdir: "/home/deploy/{{item}}"
+      loop: "{{ apps }}"
+
+    - name: Build the containers
+      command: "docker-compose up --build"
+      args:
+        chdir: "/home/deploy/{{item}}"
+      loop: "{{ apps }}"
+
+    - name: Populate database
+      command: "docker exec -i referenceletterapp-mysqldb-1 /bin/sh -c 'mysql -u root -proot </docker-entrypoint-initdb.d/data.sql'"
+      args:
+        chdir: "/home/deploy/{{item[0]}}"

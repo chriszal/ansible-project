@@ -4,11 +4,11 @@
   become_user: deploy
   tasks:
     - name: Clone app repos
-      git:  
-        repo: git@{{ item }}.github.com:{{ github_account }}/{{ item }}.git
-        dest: /home/deploy
-        accept_hostkey: yes
-      # command: git -C /home/deploy clone git@{{ item }}.github.com:{{ github_account }}/{{ item }}.git 
+      # git:  
+      #   repo: git@{{ item }}.github.com:{{ github_account }}/{{ item }}.git
+      #   dest: /home/deploy
+      #   accept_hostkey: yes
+      command: git -C /home/deploy clone git@{{ item }}.github.com:{{ github_account }}/{{ item }}.git 
       args:
         creates: /home/deploy/{{ item }}/
       loop: "{{ apps }}"
