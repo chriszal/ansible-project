@@ -84,10 +84,10 @@
 
     # Don't allow the deploy user to set their authorized keys! Otherwise, it can escape from
     # its one-command jail.
-    - name: Configure SSHD to read authorized keys from /etc/ssh/authorized_keys/<user>
-      copy:
-        src: ./authorized_keys_file.conf
-        dest: /etc/ssh/sshd_config.d/authorized_keys_file.conf
+    # - name: Configure SSHD to read authorized keys from /etc/ssh/authorized_keys/<user>
+    #   copy:
+    #     src: ./authorized_keys_file.conf
+    #     dest: /etc/ssh/sshd_config.d/authorized_keys_file.conf
 
     # For each service, generate an SSH key pair used for cloning git repos
     # and deploying over SSH
