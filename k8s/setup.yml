@@ -37,36 +37,50 @@
         name:
           - python3-pip
           - xz-utils
+          - git
           - docker-ce 
-          - docker-ce-cli
-          - git 
+          - docker-ce-cli 
           - containerd.io
+          - snapd
+          - ufw
           # Allows Ansible to become an unprivileged user
           # https://github.com/georchestra/ansible/issues/55#issuecomment-588313638
           - acl
-
-    # Next tasks install Docker Compose per https://docs.docker.com/compose/install/
-    - name: Install Docker Compose
-      get_url:
-        url: https://github.com/docker/compose/releases/download/v2.5.0/docker-compose-Linux-x86_64
-        dest: /usr/local/bin/docker-compose
-        mode: '0755'
-
-    - name: Add Docker Compose to path
-      command: ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
-      args:
-        creates: /usr/bin/docker-compose
     
     - name: Chmod for docker.sock
       command: sudo chmod 666 /var/run/docker.sock
 
-    - name: Chmod for docker-compose
-      command: sudo chmod +x /usr/local/bin/docker-compose
+    - name: Add an apt signing key for Kubernetes
+      apt_key:
+        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        state: present
 
-    - name: Create Docker network
-      command: "docker network create referral-network"
-      # Command errors out when the network already exists - ignore
-      ignore_errors: yes
+    - name: Adding apt repository for Kubernetes
+      apt_repository:
+        repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+        state: present
+        filename: kubernetes.list
+
+    - name: Install Kubernetes binaries
+      apt: 
+        name: "{{ packages }}"
+        state: present
+      vars:
+        packages:
+          - kubelet 
+          - kubeadm 
+          - kubectl
+      register: installed
+
+    - name: Restart kubelet
+      service:
+        name: kubelet
+        daemon_reload: yes
+        state: restarted
+
+    # - name: Initialize the Kubernetes cluster using kubeadm
+    #   command: kubeadm init --apiserver-advertise-address="192.168.50.10" --apiserver-cert-extra-sans="192.168.50.10"  --node-name master --pod-network-cidr=192.168.0.0/16
+    #   when: installed is changed
 
     - name: Create unprivileged user for deploying and running services
       user:
@@ -83,36 +97,19 @@
         mode: '0700'
         owner: deploy
 
-    # Don't allow the deploy user to set their authorized keys! Otherwise, it can escape from
-    # its one-command jail.
-    # - name: Configure SSHD to read authorized keys from /etc/ssh/authorized_keys/<user>
-    #   copy:
-    #     src: ./authorized_keys_file.conf
-    #     dest: /etc/ssh/sshd_config.d/authorized_keys_file.conf
+
 
     # For each service, generate an SSH key pair used for cloning git repos
     # and deploying over SSH
     - name: Create deploy key for each app
-      command: "ssh-keygen -o -a 100 -t ed25519 -f /home/deploy/.ssh/{{ item }}.id_ed25519 -N ''"
+      command: "ssh-keygen -o -a 100 -t ed25519 -f /home/deploy/.ssh/{{ item }}.id_ed25519_k8s -N ''"
       become: yes
       become_user: deploy
       args:
-        creates: "/home/deploy/.ssh/{{ item }}.id_ed25519"
+        creates: "/home/deploy/.ssh/{{ item }}.id_ed25519_k8s"
       loop: "{{ apps }}"
 
-    # Update SSH authorized keys to allow the deploy user to run the deploy script
-    # over SSH for each service (called deploy-<service>.sh).
-    # See ./update-authorized-keys.sh
-    # - name: Allow deploy user to deploy things
-    #   script: "./update-authorized-keys.sh {{ apps|join(' ') }}"
-
-    # - name: Copy general deploy script
-    #   copy:
-    #     src: ./deploy.sh
-    #     dest: /home/deploy
-    #     mode: '0770'
-    #     owner: deploy
-
+   
 
     # Configure deploy's SSH to use the deploy keys generated earlier when cloning/pulling git repos.
     # When cloning/pulling/etc the <app> repo, we'll use <app>.github.com, so that way, we can
@@ -126,13 +123,13 @@
 
     - name: Copy the public deploy key to operator's machine
       fetch:
-        src: "/home/deploy/.ssh/{{ item }}.id_ed25519.pub"
+        src: "/home/deploy/.ssh/{{ item }}.id_ed25519_k8s.pub"
         dest: "keys"
       loop: "{{ apps }}"
 
     - name: Copy private SSH keys for Github deploy Action to operator's machine
       fetch:
-        src: "/home/deploy/.ssh/{{ item }}.id_ed25519"
+        src: "/home/deploy/.ssh/{{ item }}.id_ed25519_k8s"
         dest: "keys"
       loop: "{{ apps }}"
 
@@ -141,3 +138,19 @@
         src: ./known_hosts
         dest: /home/deploy/.ssh/known_hosts
         owner: deploy
+
+    # - name: Copy admin.conf file
+    #   copy: remote_src=True src=/etc/kubernetes/admin.conf dest=/home/deploy/.kube/config
+
+    # - name: Change admin.conf owner
+    #   file:
+    #     path: /home/deploy/.kube/config
+    #     owner: deploy
+    #     group: deploy
+
+    # - name: "Login to DockerHub"
+    #   become: yes
+    #   become_user: deploy
+    #   command: "docker login -u {{ docker_username }} --password-stdin"
+    #   args:
+    #     stdin: "{{ docker_password }}"

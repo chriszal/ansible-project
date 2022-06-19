@@ -14,7 +14,8 @@
       loop: "{{ apps }}"
       
     # .envrc will be sourced by the deploy script to set environment variables
-    - name: Copy environment variable files
-      copy:
-        src: ./.env
-        dest: /home/deploy/{{ apps[0] }}/.env
+    # - name: Copy environment variable files
+    #   copy:
+    #     src: ./{{ item }}-envrc
+    #     dest: /home/deploy/{{ item }}/.envrc
+    #   loop: "{{ apps }}"

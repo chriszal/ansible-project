@@ -1,0 +1,25 @@
+---
+- hosts: all
+  become: yes
+  become_user: deploy
+  tasks:
+  # - name: Deploy apps
+  #   command: "/home/deploy/deploy-{{ item }}.sh"
+  #   loop: "{{ apps }}"
+    - name: Change branch
+      command: "git checkout dockerize"
+      args:
+        chdir: "/home/deploy/{{apps[0]}}"
+
+    - name: Pull latest updates
+      command: "git pull"
+      args:
+        chdir: "/home/deploy/{{item}}"
+      loop: "{{ apps }}"
+
+      #push to docker hub
+
+      #move to folders and delete yamls
+      #create yamls
+      #populate database
+      
