@@ -78,6 +78,80 @@
         daemon_reload: yes
         state: restarted
 
+    - name: Check is ufw installed
+      shell: command -v ufw >/dev/null 2>&1
+      register: is_ufw_exist
+      ignore_errors: yes
+
+    - name: Disabling ufw
+      command: ufw disable
+      become: yes
+      when: is_ufw_exist.rc == 0
+
+    - name: Set ip forwarding
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: 1
+        sysctl_set: yes
+
+    - name: Disable Swap
+      command: swapoff -a
+
+    - name: Install microk8s
+      become: yes
+      snap:
+        name: microk8s
+        classic: yes
+        channel: "1.13/stable"
+
+    - name: Microk8s status
+      shell: source /etc/profile.d/apps-bin-path.sh && microk8s.status --wait-ready
+      args:
+        executable: /bin/bash
+
+    - name: Allow Privileged for Kubelet (needed by Elasticsearch Helm chart)
+      lineinfile:
+        dest: /var/snap/microk8s/current/args/kubelet
+        line: "--allow-privileged=true"
+        state: present
+
+    - name: Allow Privileged for K8s Apiserver (needed by Elasticsearch Helm chart)
+      lineinfile:
+        dest: /var/snap/microk8s/current/args/kube-apiserver
+        line: "--allow-privileged=true"
+        state: present
+
+    - name: Set File Descriptor Limits for Microk8s
+      lineinfile:
+        dest: /var/snap/microk8s/current/args/containerd-env
+        line: "ulimit -n 65536"
+        state: present
+
+    - name: Stop Microk8s
+      shell: source /etc/profile.d/apps-bin-path.sh && microk8s.stop
+      args:
+        executable: /bin/bash
+
+    - name: Start Microk8s
+      shell: source /etc/profile.d/apps-bin-path.sh && microk8s.start
+      args:
+        executable: /bin/bash
+
+    - name: Enable dns
+      shell: "source /etc/profile.d/apps-bin-path.sh && microk8s.enable dns"
+      args:
+        executable: /bin/bash
+
+    - name: Enable ingress
+      shell: "source /etc/profile.d/apps-bin-path.sh && microk8s.enable ingress"
+      args:
+        executable: /bin/bash
+
+    - name: Enable storage
+      shell: "source /etc/profile.d/apps-bin-path.sh && microk8s.enable storage"
+      args:
+        executable: /bin/bash
+
     # - name: Initialize the Kubernetes cluster using kubeadm
     #   command: kubeadm init --apiserver-advertise-address="192.168.50.10" --apiserver-cert-extra-sans="192.168.50.10"  --node-name master --pod-network-cidr=192.168.0.0/16
     #   when: installed is changed

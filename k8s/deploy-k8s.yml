@@ -18,8 +18,13 @@
       loop: "{{ apps }}"
 
       #push to docker hub
+      #docker build -t chriszal/referral .  
+      #docker push chriszal/referral:latest 
 
-      #move to folders and delete yamls
-      #create yamls
+
+      #move to folders for backend and delete yamls
+
+      #apply new yamls
+      
       #populate database
       
